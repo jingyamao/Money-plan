@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
 import '../../services/ai_service.dart';
-import '../../widgets/cards/budget_card.dart';
+import '../../widgets/common/glass_card.dart';
+import '../../widgets/common/animated_widgets.dart';
 import '../../widgets/cards/transaction_tile.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -39,113 +39,230 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Money Plan',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: AppTheme.backgroundGradient,
           ),
-        ],
-      ),
-      body: Consumer<AppProvider>(
-        builder: (context, provider, child) {
-          return RefreshIndicator(
-            onRefresh: _loadAiInsight,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 概览卡片
-                  _buildOverviewCard(provider),
-                  const SizedBox(height: 16),
+        ),
+        child: SafeArea(
+          child: Consumer<AppProvider>(
+            builder: (context, provider, child) {
+              return RefreshIndicator(
+                onRefresh: _loadAiInsight,
+                color: AppTheme.primaryColor,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // App Bar
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Money Plan',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      foreground: Paint()
+                                        ..shader = const LinearGradient(
+                                          colors: AppTheme.primaryGradient,
+                                        ).createShader(
+                                          const Rect.fromLTWH(0, 0, 200, 70),
+                                        ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '智能理财助手',
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              GlassContainer(
+                                borderRadius: 14,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.notifications_rounded,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  onPressed: () {},
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                  // 预算进度
-                  BudgetCard(
-                    budget: provider.monthlyBudget,
-                    spent: provider.monthlySpent,
-                    dailyAvailable: provider.dailyAvailable,
-                  ),
-                  const SizedBox(height: 16),
+                    // 概览卡片
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 100),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildOverviewCard(provider),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                  // AI 洞察
-                  _buildAiInsightCard(),
-                  const SizedBox(height: 16),
+                    // 预算进度
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 200),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildBudgetCard(provider),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                  // 最近交易
-                  _buildRecentTransactions(provider),
-                ],
-              ),
-            ),
-          );
-        },
+                    // AI 洞察
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 300),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildAiInsightCard(),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+                    // 快速操作
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 400),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildQuickActions(),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+                    // 最近交易标题
+                    SliverToBoxAdapter(
+                      child: FadeSlideIn(
+                        delay: const Duration(milliseconds: 500),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '最近交易',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {},
+                                child: const Text(
+                                  '查看全部',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+                    // 最近交易列表
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: _buildRecentTransactions(provider),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildOverviewCard(AppProvider provider) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, AppTheme.primaryDark],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildOverviewItem(
-                '今日消费',
-                '¥${provider.todaySpent.toStringAsFixed(2)}',
-                Icons.today,
+              Expanded(
+                child: _buildOverviewItem(
+                  '今日消费',
+                  provider.todaySpent,
+                  Icons.today_rounded,
+                  const Color(0xFFFF6B6B),
+                ),
               ),
               Container(
                 width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
+                height: 50,
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
-              _buildOverviewItem(
-                '本月剩余',
-                '¥${provider.monthlyRemaining.toStringAsFixed(2)}',
-                Icons.account_balance_wallet,
+              Expanded(
+                child: _buildOverviewItem(
+                  '本月剩余',
+                  provider.monthlyRemaining,
+                  Icons.account_balance_wallet_rounded,
+                  AppTheme.primaryColor,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
+          Container(
+            height: 1,
+            color: Colors.grey.withValues(alpha: 0.15),
+          ),
+          const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildOverviewItem(
-                '当前存款',
-                '¥${provider.currentSavings.toStringAsFixed(0)}',
-                Icons.savings,
+              Expanded(
+                child: _buildOverviewItem(
+                  '当前存款',
+                  provider.currentSavings,
+                  Icons.savings_rounded,
+                  const Color(0xFF6BCB77),
+                ),
               ),
               Container(
                 width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
+                height: 50,
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
-              _buildOverviewItem(
-                '月收入',
-                '¥${provider.monthlyIncome.toStringAsFixed(0)}',
-                Icons.trending_up,
+              Expanded(
+                child: _buildOverviewItem(
+                  '月收入',
+                  provider.monthlyIncome,
+                  Icons.trending_up_rounded,
+                  const Color(0xFF7C8CF8),
+                ),
               ),
             ],
           ),
@@ -154,72 +271,140 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildOverviewItem(String label, String value, IconData icon) {
-    return Expanded(
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white70, size: 20),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 12,
-            ),
+  Widget _buildOverviewItem(
+      String label, double value, IconData icon, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Icon(icon, color: color, size: 22),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 12,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        AnimatedCounter(
+          value: value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAiInsightCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryLight.withOpacity(0.3)),
-      ),
-      child: Row(
+  Widget _buildBudgetCard(AppProvider provider) {
+    final progress = provider.budgetUsagePercent;
+    final isOverBudget = progress >= 1.0;
+
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryLight.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.auto_awesome,
-              color: AppTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'AI 洞察',
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '本月预算',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isOverBudget
+                      ? AppTheme.errorColor.withValues(alpha: 0.1)
+                      : AppTheme.successColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isOverBudget ? '已超支' : '正常',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
+                    color:
+                        isOverBudget ? AppTheme.errorColor : AppTheme.successColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: AnimatedProgressBar(
+              progress: progress,
+              height: 20,
+              backgroundColor: AppTheme.primaryLight.withValues(alpha: 0.2),
+              valueColor:
+                  isOverBudget ? AppTheme.errorColor : AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '已花费 ¥${provider.monthlySpent.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: isOverBudget
+                      ? AppTheme.errorColor
+                      : AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                '预算 ¥${provider.monthlyBudget.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.primaryLight.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: AppTheme.primaryColor,
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  _aiInsight,
+                  '今日可用 ¥${provider.dailyAvailable.toStringAsFixed(2)}',
                   style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
                   ),
                 ),
               ],
@@ -230,58 +415,163 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAiInsightCard() {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: AppTheme.primaryGradient,
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'AI 洞察',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _aiInsight,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: ScaleIn(
+            delay: const Duration(milliseconds: 400),
+            child: _buildQuickAction(
+              '记一笔',
+              Icons.add_circle_rounded,
+              AppTheme.primaryColor,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ScaleIn(
+            delay: const Duration(milliseconds: 500),
+            child: _buildQuickAction(
+              '预算',
+              Icons.pie_chart_rounded,
+              const Color(0xFF7C8CF8),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ScaleIn(
+            delay: const Duration(milliseconds: 600),
+            child: _buildQuickAction(
+              '目标',
+              Icons.flag_rounded,
+              const Color(0xFFFFBE76),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickAction(String label, IconData icon, Color color) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRecentTransactions(AppProvider provider) {
     final recentTransactions = provider.transactions.take(5).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              '最近交易',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    if (recentTransactions.isEmpty) {
+      return SliverToBoxAdapter(
+        child: GlassCard(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            children: [
+              Icon(
+                Icons.receipt_long_rounded,
+                size: 48,
+                color: AppTheme.textHint.withValues(alpha: 0.5),
               ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text('查看全部'),
-            ),
-          ],
+              const SizedBox(height: 12),
+              const Text(
+                '暂无交易记录',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '点击下方 + 开始记账',
+                style: TextStyle(
+                  color: AppTheme.textHint,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
-        if (recentTransactions.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+      );
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return FadeSlideIn(
+            delay: Duration(milliseconds: 600 + (index * 100)),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: TransactionTile(transaction: recentTransactions[index]),
             ),
-            child: const Center(
-              child: Column(
-                children: [
-                  Icon(Icons.receipt_long_outlined,
-                      size: 48, color: AppTheme.textHint),
-                  SizedBox(height: 8),
-                  Text(
-                    '暂无交易记录',
-                    style: TextStyle(color: AppTheme.textHint),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '点击下方 + 开始记账',
-                    style: TextStyle(
-                        color: AppTheme.textHint, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
-          ...recentTransactions.map((t) => TransactionTile(transaction: t)),
-      ],
+          );
+        },
+        childCount: recentTransactions.length,
+      ),
     );
   }
 }

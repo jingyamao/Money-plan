@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../models/transaction.dart';
 import '../../providers/app_provider.dart';
+import '../../widgets/common/glass_card.dart';
+import '../../widgets/common/animated_widgets.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -13,82 +15,155 @@ class AddTransactionScreen extends StatefulWidget {
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends State<AddTransactionScreen> {
+class _AddTransactionScreenState extends State<AddTransactionScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   TransactionType _type = TransactionType.expense;
   String _selectedCategory = '餐饮';
   DateTime _selectedDate = DateTime.now();
+  late AnimationController _saveController;
+
+  @override
+  void initState() {
+    super.initState();
+    _saveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
 
   @override
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
+    _saveController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('记一笔'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFE0F7FA),
+              Color(0xFFF0F4F8),
+            ],
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 收入/支出切换
-            _buildTypeToggle(),
-            const SizedBox(height: 24),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Top bar
+              FadeSlideIn(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Text(
+                        '记一笔',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Type toggle
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 50),
+                        child: _buildTypeToggle(),
+                      ),
+                      const SizedBox(height: 24),
 
-            // 金额输入
-            _buildAmountInput(),
-            const SizedBox(height: 24),
+                      // Amount
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 100),
+                        child: _buildAmountInput(),
+                      ),
+                      const SizedBox(height: 24),
 
-            // 分类选择
-            _buildCategorySelector(),
-            const SizedBox(height: 24),
+                      // Category
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 200),
+                        child: _buildCategorySelector(),
+                      ),
+                      const SizedBox(height: 24),
 
-            // 日期选择
-            _buildDateSelector(),
-            const SizedBox(height: 16),
+                      // Date
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 300),
+                        child: _buildDateSelector(),
+                      ),
+                      const SizedBox(height: 16),
 
-            // 备注
-            _buildNoteInput(),
-            const SizedBox(height: 32),
+                      // Note
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 400),
+                        child: _buildNoteInput(),
+                      ),
+                      const SizedBox(height: 32),
 
-            // 保存按钮
-            _buildSaveButton(),
-          ],
+                      // Save button
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 500),
+                        child: _buildSaveButton(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildTypeToggle() {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         children: [
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _type = TransactionType.expense),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: _type == TransactionType.expense
                       ? AppTheme.errorColor
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: _type == TransactionType.expense
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.errorColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Center(
                   child: Text(
@@ -98,6 +173,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           ? Colors.white
                           : AppTheme.textSecondary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -107,13 +183,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _type = TransactionType.income),
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: _type == TransactionType.income
                       ? AppTheme.successColor
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: _type == TransactionType.income
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.successColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Center(
                   child: Text(
@@ -123,6 +209,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           ? Colors.white
                           : AppTheme.textSecondary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -135,12 +222,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildAmountInput() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -151,16 +234,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                '¥',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: AppTheme.primaryGradient,
+                ).createShader(bounds),
+                child: const Text(
+                  '¥',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -170,8 +258,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(
-                    fontSize: 40,
+                    fontSize: 44,
                     fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
                   ),
                   decoration: const InputDecoration(
                     hintText: '0.00',
@@ -195,48 +284,71 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           '分类',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: AppTheme.categoryColors.entries.map((entry) {
-            final isSelected = _selectedCategory == entry.key;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedCategory = entry.key),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? entry.value.withOpacity(0.1)
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected ? entry.value : Colors.grey[200]!,
-                    width: isSelected ? 2 : 1,
+          spacing: 10,
+          runSpacing: 10,
+          children: AppTheme.categoryColors.entries.toList().asMap().entries.map((entry) {
+            final index = entry.key;
+            final category = entry.value;
+            final isSelected = _selectedCategory == category.key;
+
+            return ScaleIn(
+              delay: Duration(milliseconds: 200 + (index * 50)),
+              child: GestureDetector(
+                onTap: () =>
+                    setState(() => _selectedCategory = category.key),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? category.value.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected
+                          ? category.value
+                          : Colors.grey.withValues(alpha: 0.2),
+                      width: isSelected ? 2 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: category.value.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      AppTheme.categoryIcons[entry.key],
-                      color: entry.value,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      entry.key,
-                      style: TextStyle(
-                        color: isSelected ? entry.value : AppTheme.textPrimary,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppTheme.categoryIcons[category.key],
+                        color: category.value,
+                        size: 20,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        category.key,
+                        style: TextStyle(
+                          color: isSelected
+                              ? category.value
+                              : AppTheme.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -259,22 +371,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           setState(() => _selectedDate = date);
         }
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, color: AppTheme.primaryColor),
-            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.calendar_today_rounded,
+                  color: AppTheme.primaryColor, size: 20),
+            ),
+            const SizedBox(width: 14),
             Text(
               DateFormat('yyyy年MM月dd日').format(_selectedDate),
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, color: AppTheme.textHint),
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.textHint),
           ],
         ),
       ),
@@ -282,38 +398,82 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildNoteInput() {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: _noteController,
-        maxLines: 2,
-        decoration: const InputDecoration(
-          hintText: '添加备注...',
-          border: InputBorder.none,
-        ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFBE76).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.edit_note_rounded,
+                color: Color(0xFFFFBE76), size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: TextField(
+              controller: _noteController,
+              decoration: const InputDecoration(
+                hintText: '添加备注...',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _saveTransaction,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _type == TransactionType.expense
-              ? AppTheme.errorColor
-              : AppTheme.successColor,
-        ),
-        child: const Text(
-          '保存',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+    return GestureDetector(
+      onTapDown: (_) => _saveController.forward(),
+      onTapUp: (_) {
+        _saveController.reverse();
+        _saveTransaction();
+      },
+      onTapCancel: () => _saveController.reverse(),
+      child: AnimatedBuilder(
+        animation: _saveController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: 1.0 - (_saveController.value * 0.03),
+            child: Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _type == TransactionType.expense
+                      ? [AppTheme.errorColor, const Color(0xFFFF8A80)]
+                      : [AppTheme.successColor, const Color(0xFFB9F6CA)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (_type == TransactionType.expense
+                            ? AppTheme.errorColor
+                            : AppTheme.successColor)
+                        .withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Text(
+                  '保存',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -349,7 +509,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     Navigator.pop(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('记账成功！')),
+      SnackBar(
+        content: const Text('记账成功！'),
+        backgroundColor: AppTheme.successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 }

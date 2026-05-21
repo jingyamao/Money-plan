@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
+import '../../widgets/common/glass_card.dart';
+import '../../widgets/common/animated_widgets.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -18,74 +19,144 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('统计分析'),
-      ),
-      body: Consumer<AppProvider>(
-        builder: (context, provider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 时间选择
-                _buildPeriodSelector(),
-                const SizedBox(height: 20),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: AppTheme.backgroundGradient,
+          ),
+        ),
+        child: SafeArea(
+          child: Consumer<AppProvider>(
+            builder: (context, provider, child) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              '统计分析',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            GlassContainer(
+                              borderRadius: 14,
+                              child: IconButton(
+                                icon: const Icon(Icons.download_rounded,
+                                    color: AppTheme.primaryColor),
+                                onPressed: () {},
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                // 消费概览
-                _buildSummaryCards(provider),
-                const SizedBox(height: 20),
+                  // Period selector
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 100),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildPeriodSelector(),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                // 分类饼图
-                _buildCategoryPieChart(provider),
-                const SizedBox(height: 20),
+                  // Summary cards
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 200),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildSummaryCards(provider),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-                // 每日趋势
-                _buildDailyTrend(provider),
-              ],
-            ),
-          );
-        },
+                  // Pie chart
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 300),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildCategoryPieChart(provider),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+                  // Trend chart
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 400),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildDailyTrend(provider),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildPeriodSelector() {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
-        children: ['周', '月', '年'].map((period) {
-          final isSelected = _selectedPeriod == period;
+        children: ['周', '月', '年'].asMap().entries.map((entry) {
+          final isSelected = _selectedPeriod == entry.value;
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedPeriod = period),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+              onTap: () => setState(() => _selectedPeriod = entry.value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          colors: AppTheme.primaryGradient,
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                          )
+                            color:
+                                AppTheme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
                         ]
                       : null,
                 ),
                 child: Center(
                   child: Text(
-                    period,
+                    entry.value,
                     style: TextStyle(
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected
-                          ? AppTheme.primaryColor
-                          : AppTheme.textSecondary,
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -101,20 +172,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return Row(
       children: [
         Expanded(
-          child: _buildSummaryCard(
-            '总支出',
-            '¥${provider.monthlySpent.toStringAsFixed(2)}',
-            Icons.arrow_downward,
-            AppTheme.errorColor,
+          child: ScaleIn(
+            delay: const Duration(milliseconds: 200),
+            child: _buildSummaryCard(
+              '总支出',
+              '¥${provider.monthlySpent.toStringAsFixed(2)}',
+              Icons.arrow_downward_rounded,
+              const Color(0xFFFF6B6B),
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildSummaryCard(
-            '日均消费',
-            '¥${(provider.monthlySpent / DateTime.now().day).toStringAsFixed(2)}',
-            Icons.calendar_today,
-            AppTheme.warningColor,
+          child: ScaleIn(
+            delay: const Duration(milliseconds: 300),
+            child: _buildSummaryCard(
+              '日均消费',
+              '¥${(provider.monthlySpent / DateTime.now().day).toStringAsFixed(2)}',
+              Icons.calendar_today_rounded,
+              const Color(0xFFFFBE76),
+            ),
           ),
         ),
       ],
@@ -123,26 +200,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildSummaryCard(
       String title, String value, IconData icon, Color color) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 title,
                 style: const TextStyle(
@@ -152,12 +225,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             value,
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
             ),
           ),
         ],
@@ -168,39 +242,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildCategoryPieChart(AppProvider provider) {
     final breakdown = provider.categoryBreakdown;
     if (breakdown.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(
-          child: Text(
-            '暂无消费数据',
-            style: TextStyle(color: AppTheme.textHint),
-          ),
+      return GlassCard(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          children: [
+            Icon(Icons.pie_chart_rounded,
+                size: 48, color: AppTheme.textHint.withValues(alpha: 0.5)),
+            const SizedBox(height: 12),
+            const Text(
+              '暂无消费数据',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ],
         ),
       );
     }
 
     final total = breakdown.values.fold(0.0, (sum, v) => sum + v);
     final colors = [
-      AppTheme.primaryColor,
-      AppTheme.accentColor,
-      AppTheme.warningColor,
-      AppTheme.errorColor,
-      AppTheme.successColor,
-      Colors.purple,
-      Colors.orange,
-      Colors.teal,
+      const Color(0xFFFF6B6B),
+      const Color(0xFF4ECDC4),
+      const Color(0xFFA78BFA),
+      const Color(0xFFFFBE76),
+      const Color(0xFF6BCB77),
+      const Color(0xFFFF8A80),
+      const Color(0xFF7C8CF8),
+      const Color(0xFF95A5A6),
     ];
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -209,16 +280,18 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: PieChart(
               PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 50,
-                sections: breakdown.entries.toList().asMap().entries.map((entry) {
+                sectionsSpace: 3,
+                centerSpaceRadius: 55,
+                sections:
+                    breakdown.entries.toList().asMap().entries.map((entry) {
                   final index = entry.key;
                   final category = entry.value;
                   final percent = (category.value / total * 100);
@@ -226,7 +299,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     color: colors[index % colors.length],
                     value: category.value,
                     title: '${percent.toStringAsFixed(0)}%',
-                    radius: 50,
+                    radius: 45,
                     titleStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -237,27 +310,38 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...breakdown.entries.toList().asMap().entries.map((entry) {
             final index = entry.key;
             final category = entry.value;
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 children: [
                   Container(
-                    width: 12,
-                    height: 12,
+                    width: 14,
+                    height: 14,
                     decoration: BoxDecoration(
                       color: colors[index % colors.length],
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(category.key)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      category.key,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                   Text(
                     '¥${category.value.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                 ],
               ),
@@ -269,49 +353,121 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildDailyTrend(AppProvider provider) {
-    // 简化版趋势图，实际应该根据日期聚合数据
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '消费趋势',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '消费趋势',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  '近7天',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: LineChart(
               LineChartData(
-                gridData: const FlGridData(show: false),
-                titlesData: const FlTitlesData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 2,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                titlesData: FlTitlesData(
+                  rightTitles: const AxisTitles(),
+                  topTitles: const AxisTitles(),
+                  leftTitles: const AxisTitles(),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) {
+                        final days = ['一', '二', '三', '四', '五', '六', '日'];
+                        if (value.toInt() < days.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              days[value.toInt()],
+                              style: const TextStyle(
+                                color: AppTheme.textHint,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                  ),
+                ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
                   LineChartBarData(
                     spots: [
                       const FlSpot(0, 3),
-                      const FlSpot(1, 4),
-                      const FlSpot(2, 3.5),
-                      const FlSpot(3, 5),
-                      const FlSpot(4, 4),
-                      const FlSpot(5, 6),
-                      const FlSpot(6, 5.5),
+                      const FlSpot(1, 4.5),
+                      const FlSpot(2, 2.8),
+                      const FlSpot(3, 6),
+                      const FlSpot(4, 3.5),
+                      const FlSpot(5, 5.5),
+                      const FlSpot(6, 4),
                     ],
                     isCurved: true,
-                    color: AppTheme.primaryColor,
+                    gradient: const LinearGradient(
+                      colors: AppTheme.primaryGradient,
+                    ),
                     barWidth: 3,
-                    dotData: const FlDotData(show: false),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: AppTheme.primaryColor,
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppTheme.primaryColor.withValues(alpha: 0.2),
+                          AppTheme.primaryColor.withValues(alpha: 0.0),
+                        ],
+                      ),
                     ),
                   ),
                 ],

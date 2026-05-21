@@ -22,11 +22,11 @@ class BudgetCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
             offset: const Offset(0, 5),
           ),
         ],
@@ -42,20 +42,24 @@ class BudgetCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: isOverBudget
-                      ? AppTheme.errorColor.withOpacity(0.1)
-                      : AppTheme.successColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                      ? AppTheme.errorColor.withValues(alpha: 0.1)
+                      : AppTheme.successColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   isOverBudget ? '已超支' : '正常',
                   style: TextStyle(
-                    color: isOverBudget ? AppTheme.errorColor : AppTheme.successColor,
+                    color: isOverBudget
+                        ? AppTheme.errorColor
+                        : AppTheme.successColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -65,37 +69,21 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // 进度条
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 20,
-                  backgroundColor: AppTheme.primaryLight.withOpacity(0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isOverBudget ? AppTheme.errorColor : AppTheme.primaryColor,
-                  ),
-                ),
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 20,
+              backgroundColor: AppTheme.primaryLight.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isOverBudget ? AppTheme.errorColor : AppTheme.primaryColor,
               ),
-              Positioned.fill(
-                child: Center(
-                  child: Text(
-                    '${(progress * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 12),
 
-          // 金额详情
+          // Amounts
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -105,18 +93,23 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // 日均可用
+          // Daily available
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight.withOpacity(0.1),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.1),
+                  AppTheme.primaryLight.withValues(alpha: 0.1),
+                ],
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.calendar_today,
+                  Icons.calendar_today_rounded,
                   size: 16,
                   color: AppTheme.primaryColor,
                 ),
