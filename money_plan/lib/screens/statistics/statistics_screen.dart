@@ -31,7 +31,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Consumer<AppProvider>(
             builder: (context, provider, child) {
               return CustomScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 slivers: [
                   SliverToBoxAdapter(
                     child: FadeSlideIn(

@@ -54,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 onRefresh: _loadAiInsight,
                 color: AppTheme.primaryColor,
                 child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   slivers: [
                     // App Bar
                     SliverToBoxAdapter(

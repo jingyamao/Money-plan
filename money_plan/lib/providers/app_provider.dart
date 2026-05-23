@@ -16,6 +16,152 @@ class AppProvider extends ChangeNotifier {
 
   AppProvider() {
     _loadData();
+    _loadTestDataIfEmpty();
+  }
+
+  void _loadTestDataIfEmpty() {
+    if (_transactions.isEmpty) {
+      _loadTestData();
+    }
+  }
+
+  void _loadTestData() {
+    final now = DateTime.now();
+
+    // 设置基础数据
+    _monthlyBudget = 5000;
+    _currentSavings = 28500;
+    _monthlyIncome = 12000;
+    _storage.setMonthlyBudget(_monthlyBudget);
+    _storage.setCurrentSavings(_currentSavings);
+    _storage.setMonthlyIncome(_monthlyIncome);
+
+    // 添加测试交易记录
+    final testTransactions = [
+      Transaction(
+        id: '1',
+        amount: 35.0,
+        type: TransactionType.expense,
+        category: '餐饮',
+        description: '午餐 - 麦当劳',
+        transactionDate: now,
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '2',
+        amount: 128.0,
+        type: TransactionType.expense,
+        category: '购物',
+        description: '日用品采购',
+        transactionDate: now,
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '3',
+        amount: 15.0,
+        type: TransactionType.expense,
+        category: '交通',
+        description: '地铁充值',
+        transactionDate: now.subtract(const Duration(days: 1)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '4',
+        amount: 268.0,
+        type: TransactionType.expense,
+        category: '娱乐',
+        description: '电影票 + 晚餐',
+        transactionDate: now.subtract(const Duration(days: 1)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '5',
+        amount: 45.0,
+        type: TransactionType.expense,
+        category: '餐饮',
+        description: '外卖 - 火锅',
+        transactionDate: now.subtract(const Duration(days: 2)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '6',
+        amount: 89.0,
+        type: TransactionType.expense,
+        category: '生活',
+        description: '水电费',
+        transactionDate: now.subtract(const Duration(days: 3)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '7',
+        amount: 12000.0,
+        type: TransactionType.income,
+        category: '其他',
+        description: '工资',
+        transactionDate: now.subtract(const Duration(days: 5)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '8',
+        amount: 199.0,
+        type: TransactionType.expense,
+        category: '购物',
+        description: '衣服',
+        transactionDate: now.subtract(const Duration(days: 4)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '9',
+        amount: 28.0,
+        type: TransactionType.expense,
+        category: '餐饮',
+        description: '早餐 + 咖啡',
+        transactionDate: now.subtract(const Duration(days: 2)),
+        source: TransactionSource.manual,
+      ),
+      Transaction(
+        id: '10',
+        amount: 350.0,
+        type: TransactionType.expense,
+        category: '医疗',
+        description: '体检',
+        transactionDate: now.subtract(const Duration(days: 6)),
+        source: TransactionSource.manual,
+      ),
+    ];
+
+    _transactions = testTransactions;
+    _storage.saveTransactions(_transactions);
+
+    // 添加测试存款目标
+    _savingsGoals = [
+      SavingsGoal(
+        id: '1',
+        name: '买车基金',
+        targetAmount: 150000,
+        currentAmount: 28500,
+        targetDate: now.add(const Duration(days: 365)),
+        priority: 1,
+      ),
+      SavingsGoal(
+        id: '2',
+        name: '旅行基金',
+        targetAmount: 15000,
+        currentAmount: 8000,
+        targetDate: now.add(const Duration(days: 180)),
+        priority: 2,
+      ),
+      SavingsGoal(
+        id: '3',
+        name: '应急储备金',
+        targetAmount: 30000,
+        currentAmount: 22000,
+        priority: 3,
+      ),
+    ];
+    _storage.saveSavingsGoals(_savingsGoals);
+
+    notifyListeners();
   }
 
   // Getters
