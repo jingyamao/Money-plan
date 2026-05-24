@@ -6,6 +6,7 @@ import '../../services/ai_service.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import '../../widgets/cards/transaction_tile.dart';
+import '../transaction/edit_transaction_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -568,7 +569,19 @@ class _HomeScreenState extends State<HomeScreen> {
             delay: Duration(milliseconds: 600 + (index * 100)),
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: TransactionTile(transaction: recentTransactions[index]),
+              child: TransactionTile(
+                transaction: recentTransactions[index],
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditTransactionScreen(
+                        transaction: recentTransactions[index],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           );
         },

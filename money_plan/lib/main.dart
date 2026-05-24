@@ -4,10 +4,22 @@ import 'config/theme.dart';
 import 'providers/app_provider.dart';
 import 'screens/main_screen.dart';
 import 'services/storage_service.dart';
+import 'services/supabase_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化本地存储
   await StorageService().init();
+
+  // 初始化 Supabase
+  await SupabaseService.initialize();
+
+  // 初始化通知服务
+  await NotificationService().initialize();
+  await NotificationService().requestPermission();
+
   runApp(const MoneyPlanApp());
 }
 
