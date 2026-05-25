@@ -129,35 +129,49 @@ class TransactionTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppTheme.errorColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('确认删除'),
+          ],
         ),
-        title: const Text('确认删除'),
-        content: Text('确定要删除这笔${transaction.category}记录吗？'),
+        content: Text(
+          '确定要删除这笔${transaction.category}记录吗？',
+          style: const TextStyle(fontSize: 14),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(
+              '取消',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               context.read<AppProvider>().deleteTransaction(transaction.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('已删除'),
-                  backgroundColor: AppTheme.successColor,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                const SnackBar(content: Text('已删除')),
               );
             },
-            child: const Text(
-              '删除',
-              style: TextStyle(color: AppTheme.errorColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
             ),
+            child: const Text('删除'),
           ),
         ],
       ),

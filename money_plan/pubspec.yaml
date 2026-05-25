@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
 
   # 状态管理
@@ -30,7 +32,7 @@ dependencies:
   fl_chart: ^0.70.2
 
   # 日期时间
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # UUID 生成
   uuid: ^4.5.1

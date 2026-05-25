@@ -223,7 +223,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   Widget _buildAmountInput() {
     return GlassCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -231,41 +231,42 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
             '金额',
             style: TextStyle(
               color: AppTheme.textSecondary,
-              fontSize: 14,
+              fontSize: 13,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: AppTheme.primaryGradient,
-                ).createShader(bounds),
-                child: const Text(
-                  '¥',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              Text(
+                '¥',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: TextField(
                   controller: _amountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(
-                    fontSize: 44,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
                   decoration: const InputDecoration(
                     hintText: '0.00',
+                    hintStyle: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textHint,
+                    ),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
+                    isDense: true,
                   ),
                 ),
               ),
@@ -283,49 +284,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
         const Text(
           '分类',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppTheme.textPrimary,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: 8,
+          runSpacing: 8,
           children: AppTheme.categoryColors.entries.toList().asMap().entries.map((entry) {
             final index = entry.key;
             final category = entry.value;
             final isSelected = _selectedCategory == category.key;
 
             return ScaleIn(
-              delay: Duration(milliseconds: 200 + (index * 50)),
+              delay: Duration(milliseconds: 100 + (index * 30)),
               child: GestureDetector(
                 onTap: () =>
                     setState(() => _selectedCategory = category.key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? category.value.withValues(alpha: 0.15)
                         : Colors.white.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
                           ? category.value
                           : Colors.grey.withValues(alpha: 0.2),
-                      width: isSelected ? 2 : 1,
+                      width: isSelected ? 1.5 : 1,
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: category.value.withValues(alpha: 0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -333,9 +325,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                       Icon(
                         AppTheme.categoryIcons[category.key],
                         color: category.value,
-                        size: 20,
+                        size: 18,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         category.key,
                         style: TextStyle(

@@ -142,6 +142,48 @@ class AppTheme {
         color: Colors.grey.withValues(alpha: 0.15),
         thickness: 1,
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        titleTextStyle: const TextStyle(
+          color: textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+        contentTextStyle: const TextStyle(
+          color: textSecondary,
+          fontSize: 14,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: primaryColor,
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        headerBackgroundColor: primaryColor,
+        headerForegroundColor: Colors.white,
+        dayStyle: const TextStyle(fontSize: 14),
+        weekdayStyle: const TextStyle(
+          fontSize: 13,
+          color: textSecondary,
+        ),
+        yearStyle: const TextStyle(fontSize: 14),
+      ),
     );
   }
 }

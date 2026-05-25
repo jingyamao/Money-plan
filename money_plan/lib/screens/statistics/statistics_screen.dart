@@ -290,20 +290,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             height: 200,
             child: PieChart(
               PieChartData(
-                sectionsSpace: 3,
-                centerSpaceRadius: 55,
+                sectionsSpace: 2,
+                centerSpaceRadius: 60,
                 sections:
                     breakdown.entries.toList().asMap().entries.map((entry) {
                   final index = entry.key;
                   final category = entry.value;
                   final percent = (category.value / total * 100);
+                  // 只有占比超过 8% 才显示文字
+                  final showTitle = percent >= 8;
+                  final fontSize = percent >= 15 ? 12.0 : (percent >= 8 ? 10.0 : 0.0);
+
                   return PieChartSectionData(
                     color: colors[index % colors.length],
                     value: category.value,
-                    title: '${percent.toStringAsFixed(0)}%',
-                    radius: 45,
-                    titleStyle: const TextStyle(
-                      fontSize: 12,
+                    title: showTitle ? '${percent.toStringAsFixed(0)}%' : '',
+                    radius: 50,
+                    titleStyle: TextStyle(
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
