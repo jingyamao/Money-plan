@@ -33,7 +33,8 @@ class AiService {
           'model': AppConstants.aiModel,
           'messages': messages,
           'temperature': 0.7,
-          'max_tokens': 300,
+          'max_tokens': 500,
+          'stream': false,
         }),
       ).timeout(const Duration(seconds: 30));
 

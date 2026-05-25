@@ -4,12 +4,10 @@ class AppConstants {
   static const String supabaseAnonKey =
       'sb_publishable__KUO4YGVSRCHxmy9Ceve8g_7NfKq6Xk';
 
-  // MiMo AI 配置
-  static const String aiApiUrl =
-      'https://token-plan-cn.xiaomimimo.com/v1/chat/completions';
-  static const String aiApiKey =
-      'tp-ckrw93d7paz2ef5lzo0x9urz3jziki8rkj4f7onis0b5uua8';
-  static const String aiModel = 'MiMo';
+  // DeepSeek AI 配置
+  static const String aiApiUrl = 'https://api.deepseek.com/chat/completions';
+  static const String aiApiKey = 'sk-83356bbaa91b405f9e88e788f24a6b9b';
+  static const String aiModel = 'deepseek-v4-pro';
 
   // 应用名称
   static const String appName = 'Money Plan';
