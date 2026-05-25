@@ -30,12 +30,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // 清除旧版本带 emoji 的历史记录
+    final version = prefs.getInt('chat_history_version') ?? 0;
+    if (version < 2) {
+      await prefs.remove('ai_chat_history');
+      await prefs.setInt('chat_history_version', 2);
+    }
+
     final historyJson = prefs.getString('ai_chat_history');
     if (historyJson != null) {
-      final List<dynamic> historyList = jsonDecode(historyJson);
-      setState(() {
-        _messages = historyList.map((m) => ChatMessage.fromJson(m)).toList();
-      });
+      try {
+        final List<dynamic> historyList = jsonDecode(historyJson);
+        setState(() {
+          _messages = historyList.map((m) => ChatMessage.fromJson(m)).toList();
+        });
+      } catch (e) {
+        // 解析失败则清除历史
+        await prefs.remove('ai_chat_history');
+      }
     }
     if (_messages.isEmpty) {
       _addWelcomeMessage();
