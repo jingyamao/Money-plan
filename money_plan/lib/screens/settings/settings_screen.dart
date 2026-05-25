@@ -184,11 +184,15 @@ class SettingsScreen extends StatelessWidget {
                               icon: Icons.cloud_upload_rounded,
                               iconColor: const Color(0xFF4ECDC4),
                               title: '同步到云端',
-                              subtitle: '数据将保存到 Supabase',
+                              subtitle: provider.isLoggedIn ? '已登录，数据自动同步' : '点击登录开启云同步',
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  _buildSnackBar('功能开发中...'),
-                                );
+                                if (provider.isLoggedIn) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    _buildSnackBar('数据已同步到云端'),
+                                  );
+                                } else {
+                                  _showLoginDialog(context, provider);
+                                }
                               },
                             ),
                             Divider(
@@ -362,6 +366,103 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showLoginDialog(BuildContext context, AppProvider provider) {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    bool isLogin = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(isLogin ? '登录' : '注册'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: '邮箱',
+                        hintText: 'your@email.com',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: '密码',
+                        hintText: '至少6位',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(isLogin ? '没有账号？' : '已有账号？'),
+                        GestureDetector(
+                          onTap: () => setState(() => isLogin = !isLogin),
+                          child: Text(
+                            isLogin ? '立即注册' : '去登录',
+                            style: TextStyle(color: AppTheme.primaryColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    final password = passwordController.text;
+
+                    if (email.isEmpty || password.isEmpty) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请填写邮箱和密码')),
+                      );
+                      return;
+                    }
+
+                    bool success;
+                    if (isLogin) {
+                      success = await provider.signIn(email, password);
+                    } else {
+                      success = await provider.signUp(email, password);
+                    }
+
+                    if (!context.mounted) return;
+                    if (success) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isLogin ? '登录成功' : '注册成功')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(isLogin ? '登录失败' : '注册失败')),
+                      );
+                    }
+                  },
+                  child: Text(isLogin ? '登录' : '注册'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
