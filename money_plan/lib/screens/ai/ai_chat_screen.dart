@@ -15,7 +15,7 @@ class AiChatScreen extends StatefulWidget {
   State<AiChatScreen> createState() => _AiChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderStateMixin {
+class _AiChatScreenState extends State<AiChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
@@ -90,11 +90,10 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          // Chat messages
           Expanded(
             child: GestureDetector(
               onTap: () => _focusNode.unfocus(),
@@ -104,19 +103,13 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  return _buildMessage(_messages[index], index);
+                  return _buildMessage(_messages[index]);
                 },
               ),
             ),
           ),
-
-          // Loading indicator
           if (_isLoading) _buildLoadingIndicator(),
-
-          // Quick actions
-          if (_messages.length <= 1) _buildQuickActions(),
-
-          // Input
+          _buildQuickActions(),
           _buildInputArea(),
         ],
       ),
@@ -126,7 +119,8 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
-      elevation: 0.5,
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
         onPressed: () => Navigator.pop(context),
@@ -140,7 +134,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
             height: 32,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF4F8EFF), Color(0xFF1D63E0)],
+                colors: AppTheme.primaryGradient,
               ),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -195,11 +189,11 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildMessage(ChatMessage message, int index) {
+  Widget _buildMessage(ChatMessage message) {
     final isUser = message.isUser;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,11 +208,11 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
               children: [
                 Container(
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.78,
+                    maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF4F8EFF) : Colors.white,
+                    color: isUser ? AppTheme.primaryColor : Colors.white,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
@@ -227,7 +221,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -255,38 +249,25 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textPrimary,
                             ),
-                            em: const TextStyle(
-                              color: Color(0xFF4F8EFF),
+                            em: TextStyle(
+                              color: AppTheme.primaryColor,
                               fontStyle: FontStyle.italic,
                             ),
                             listBullet: const TextStyle(
                               color: AppTheme.textPrimary,
                             ),
                             code: TextStyle(
-                              backgroundColor: const Color(0xFFF5F5F5),
-                              color: AppTheme.textPrimary,
+                              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                              color: AppTheme.primaryColor,
                               fontSize: 13,
                             ),
                             codeblockDecoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
+                              color: AppTheme.surfaceColor,
                               borderRadius: BorderRadius.circular(8),
-                            ),
-                            h1: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            h2: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            h3: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                 ),
-                // Action buttons for AI messages
                 if (!isUser) ...[
                   const SizedBox(height: 8),
                   Row(
@@ -297,13 +278,13 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                         label: '复制',
                         onTap: () => _copyMessage(message.text),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       _buildActionButton(
                         icon: Icons.thumb_up_outlined,
-                        label: '有用',
+                        label: '',
                         onTap: () {},
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       _buildActionButton(
                         icon: Icons.thumb_down_outlined,
                         label: '',
@@ -330,7 +311,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
       height: 36,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF4F8EFF), Color(0xFF1D63E0)],
+          colors: AppTheme.primaryGradient,
         ),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -357,28 +338,21 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: AppTheme.textSecondary),
-            if (label.isNotEmpty) ...[
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppTheme.textHint),
+          if (label.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textHint,
               ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -397,7 +371,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -411,7 +385,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: const Color(0xFF4F8EFF),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -422,20 +396,21 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 GestureDetector(
                   onTap: _stopGeneration,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
+                      color: AppTheme.errorColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       '停止',
                       style: TextStyle(
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.errorColor,
                         fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -450,47 +425,51 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
 
   Widget _buildQuickActions() {
     final quickQuestions = [
-      {'icon': Icons.pie_chart_rounded, 'text': '本月消费分析', 'color': const Color(0xFFFF6B6B)},
-      {'icon': Icons.lightbulb_rounded, 'text': '给我省钱建议', 'color': const Color(0xFFFFBE76)},
-      {'icon': Icons.savings_rounded, 'text': '存款目标预测', 'color': const Color(0xFF6BCB77)},
-      {'icon': Icons.trending_down_rounded, 'text': '哪些可以减少', 'color': const Color(0xFF4ECDC4)},
+      {'icon': Icons.pie_chart_rounded, 'text': '本月消费分析', 'color': AppTheme.errorColor},
+      {'icon': Icons.lightbulb_rounded, 'text': '给我省钱建议', 'color': AppTheme.warningColor},
+      {'icon': Icons.savings_rounded, 'text': '存款目标预测', 'color': AppTheme.successColor},
+      {'icon': Icons.trending_down_rounded, 'text': '哪些可以减少', 'color': AppTheme.accentColor},
     ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: quickQuestions.map((q) {
-          return GestureDetector(
-            onTap: () {
-              _messageController.text = q['text'] as String;
-              _sendMessage();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E5E5)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(q['icon'] as IconData, size: 16, color: q['color'] as Color),
-                  const SizedBox(width: 6),
-                  Text(
-                    q['text'] as String,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.textPrimary,
-                    ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: quickQuestions.map((q) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () {
+                  _messageController.text = q['text'] as String;
+                  _sendMessage();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(q['icon'] as IconData, size: 16, color: q['color'] as Color),
+                      const SizedBox(width: 6),
+                      Text(
+                        q['text'] as String,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -515,8 +494,9 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
             child: Container(
               constraints: const BoxConstraints(maxHeight: 120),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F7F8),
+                color: AppTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: TextField(
                 controller: _messageController,
@@ -544,7 +524,7 @@ class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderSt
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: _isLoading ? const Color(0xFFE5E5E5) : const Color(0xFF4F8EFF),
+                color: _isLoading ? Colors.grey[300] : AppTheme.primaryColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

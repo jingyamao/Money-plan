@@ -6,6 +6,7 @@ import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import 'fixed_transactions_screen.dart';
 import 'category_budget_screen.dart';
+import 'accounts_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -143,6 +144,23 @@ class SettingsScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _buildSettingsCard(
                           children: [
+                            _buildSettingsTile(
+                              icon: Icons.account_balance_wallet_rounded,
+                              iconColor: const Color(0xFF4F8EFF),
+                              title: '账户管理',
+                              subtitle: '管理银行卡、支付宝等账户',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AccountsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            Divider(
+                                height: 1,
+                                color: Colors.grey.withValues(alpha: 0.15)),
                             _buildSettingsTile(
                               icon: Icons.repeat_rounded,
                               iconColor: const Color(0xFF7C8CF8),

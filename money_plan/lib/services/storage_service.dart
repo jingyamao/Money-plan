@@ -5,6 +5,7 @@ import '../models/budget.dart';
 import '../models/savings_goal.dart';
 import '../models/fixed_transaction.dart';
 import '../models/category_budget.dart';
+import '../models/account.dart';
 
 class StorageService {
   static final StorageService _instance = StorageService._internal();
@@ -150,5 +151,41 @@ class StorageService {
 
   String getBudgetPeriod() {
     return _prefs.getString('budget_period') ?? 'monthly';
+  }
+
+  // 账户管理
+  Future<void> saveAccount(Account account) async {
+    final list = getAccounts();
+    final index = list.indexWhere((a) => a.id == account.id);
+    if (index != -1) {
+      list[index] = account;
+    } else {
+      list.add(account);
+    }
+    final jsonList = list.map((a) => a.toMap()).toList();
+    await _prefs.setString('accounts', jsonEncode(jsonList));
+  }
+
+  List<Account> getAccounts() {
+    final jsonStr = _prefs.getString('accounts');
+    if (jsonStr == null) return [];
+    final jsonList = jsonDecode(jsonStr) as List;
+    return jsonList.map((map) => Account.fromMap(map)).toList();
+  }
+
+  Future<void> deleteAccount(String id) async {
+    final list = getAccounts();
+    list.removeWhere((a) => a.id == id);
+    final jsonList = list.map((a) => a.toMap()).toList();
+    await _prefs.setString('accounts', jsonEncode(jsonList));
+  }
+
+  // 发薪日
+  Future<void> setPayday(int day) async {
+    await _prefs.setInt('payday', day);
+  }
+
+  int getPayday() {
+    return _prefs.getInt('payday') ?? 15;
   }
 }
