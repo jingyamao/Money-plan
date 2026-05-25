@@ -223,7 +223,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   Widget _buildAmountInput() {
     return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -231,46 +231,54 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
             '金额',
             style: TextStyle(
               color: AppTheme.textSecondary,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '¥',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(
-                    fontSize: 32,
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 48,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '¥',
+                  style: TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: '0.00',
-                    hintStyle: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textHint,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      height: 1.2,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '0.00',
+                      hintStyle: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textHint,
+                        height: 1.2,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      isDense: true,
+                      filled: false,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -391,24 +399,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   Widget _buildNoteInput() {
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: const Color(0xFFFFBE76).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.edit_note_rounded,
-                color: Color(0xFFFFBE76), size: 20),
+                color: Color(0xFFFFBE76), size: 18),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: _noteController,
+              style: const TextStyle(fontSize: 14),
               decoration: const InputDecoration(
                 hintText: '添加备注...',
+                hintStyle: TextStyle(fontSize: 14),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),

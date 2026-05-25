@@ -213,7 +213,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   Widget _buildAmountInput() {
     return GlassCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -221,38 +221,54 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
             '金额',
             style: TextStyle(
               color: AppTheme.textSecondary,
-              fontSize: 14,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text(
-                '¥',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(
-                    fontSize: 44,
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 48,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '¥',
+                  style: TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _amountController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      height: 1.2,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '0.00',
+                      hintStyle: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textHint,
+                        height: 1.2,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      isDense: true,
+                      filled: false,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
