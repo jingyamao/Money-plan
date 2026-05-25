@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
+import '../../services/test_data_service.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import 'fixed_transactions_screen.dart';
@@ -222,6 +223,38 @@ class SettingsScreen extends StatelessWidget {
                               subtitle: '删除所有本地数据',
                               onTap: () => _showClearDataDialog(context),
                               isDestructive: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+                  // 测试数据
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 280),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildSectionHeader('测试工具'),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  SliverToBoxAdapter(
+                    child: FadeSlideIn(
+                      delay: const Duration(milliseconds: 300),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildSettingsCard(
+                          children: [
+                            _buildSettingsTile(
+                              icon: Icons.science_rounded,
+                              iconColor: const Color(0xFFFF6B6B),
+                              title: '生成测试数据',
+                              subtitle: '清空数据并生成半年模拟记录',
+                              onTap: () => _showTestDataDialog(context),
                             ),
                           ],
                         ),
@@ -464,6 +497,64 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _showTestDataDialog(BuildContext dialogContext) {
+    showDialog(
+      context: dialogContext,
+      builder: (context) => AlertDialog(
+        title: const Text('生成测试数据'),
+        content: const Text('将清空当前所有数据，并生成半年的模拟消费记录。\n\n包括：\n- 月收入 17000\n- 房租 1800/月\n- 存款 50000\n- 生活费预算 4000/月\n\n确定继续吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _generateTestData(dialogContext);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generateTestData(BuildContext context) async {
+    // Show loading
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('正在生成测试数据...')),
+      );
+    }
+
+    final testDataService = TestDataService();
+
+    // 登录测试账户
+    await testDataService.createAndLoginTestAccount();
+
+    // 清空数据
+    await testDataService.clearAllData();
+
+    // 设置基础数据
+    await testDataService.setupBaseData();
+
+    // 生成半年消费数据
+    await testDataService.generateHalfYearData();
+
+    // 刷新 provider
+    if (context.mounted) {
+      context.read<AppProvider>().reloadData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('测试数据生成完成！'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+    }
   }
 
   void _showBudgetDialog(BuildContext context, AppProvider provider) {

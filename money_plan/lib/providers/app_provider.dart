@@ -477,6 +477,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 重新加载数据
+  void reloadData() {
+    _loadData();
+  }
+
   // 预算使用百分比
   double get budgetUsagePercent {
     if (_monthlyBudget <= 0) return 0;
