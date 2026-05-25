@@ -5,6 +5,7 @@ import '../../providers/app_provider.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import 'fixed_transactions_screen.dart';
+import 'category_budget_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -74,6 +75,24 @@ class SettingsScreen extends StatelessWidget {
                                   '¥${provider.monthlyBudget.toStringAsFixed(0)}',
                               onTap: () =>
                                   _showBudgetDialog(context, provider),
+                            ),
+                            Divider(
+                                height: 1,
+                                color: Colors.grey.withValues(alpha: 0.15)),
+                            _buildSettingsTile(
+                              icon: Icons.pie_chart_rounded,
+                              iconColor: const Color(0xFFFFBE76),
+                              title: '分类预算',
+                              subtitle: '按类别设置消费预算',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const CategoryBudgetScreen(),
+                                  ),
+                                );
+                              },
                             ),
                             Divider(
                                 height: 1,

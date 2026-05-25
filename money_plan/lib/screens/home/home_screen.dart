@@ -9,6 +9,7 @@ import '../../widgets/cards/transaction_tile.dart';
 import '../transaction/add_transaction_screen.dart';
 import '../transaction/edit_transaction_screen.dart';
 import '../transaction/transaction_list_screen.dart';
+import '../ai/ai_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -429,8 +430,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAiInsightCard() {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AiChatScreen()),
+        );
+      },
+      child: GlassCard(
+        padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
@@ -473,6 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

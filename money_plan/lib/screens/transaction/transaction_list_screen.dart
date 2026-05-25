@@ -18,6 +18,15 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   String _selectedFilter = '全部';
   DateTime? _startDate;
   DateTime? _endDate;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,25 +48,32 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               // App Bar
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        '全部交易',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
+                child: _isSearching
+                    ? _buildSearchBar()
+                    : Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_rounded),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Expanded(
+                            child: Text(
+                              '全部交易',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.search_rounded),
+                            onPressed: () {
+                              setState(() => _isSearching = true);
+                            },
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
               ),
 
               // Filter chips
@@ -195,6 +211,48 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            setState(() {
+              _isSearching = false;
+              _searchQuery = '';
+              _searchController.clear();
+            });
+          },
+        ),
+        Expanded(
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: '搜索交易...',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _searchController.clear();
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFilterChip(String label) {
     final isSelected = _selectedFilter == label;
     return GestureDetector(
@@ -221,6 +279,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   List<Transaction> _filterTransactions(List<Transaction> transactions) {
     var filtered = transactions;
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      filtered = filtered.where((t) {
+        return t.category.toLowerCase().contains(query) ||
+            (t.description?.toLowerCase().contains(query) ?? false) ||
+            (t.merchant?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
 
     // Filter by type
     if (_selectedFilter == '支出') {

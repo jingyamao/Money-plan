@@ -4,6 +4,7 @@ import '../models/transaction.dart';
 import '../models/budget.dart';
 import '../models/savings_goal.dart';
 import '../models/fixed_transaction.dart';
+import '../models/category_budget.dart';
 
 class StorageService {
   static final StorageService _instance = StorageService._internal();
@@ -113,5 +114,41 @@ class StorageService {
     list.removeWhere((f) => f.id == id);
     final jsonList = list.map((f) => f.toMap()).toList();
     await _prefs.setString('fixed_transactions', jsonEncode(jsonList));
+  }
+
+  // 分类预算
+  Future<void> saveCategoryBudget(CategoryBudget budget) async {
+    final list = getCategoryBudgets();
+    final index = list.indexWhere((b) => b.id == budget.id);
+    if (index != -1) {
+      list[index] = budget;
+    } else {
+      list.add(budget);
+    }
+    final jsonList = list.map((b) => b.toMap()).toList();
+    await _prefs.setString('category_budgets', jsonEncode(jsonList));
+  }
+
+  List<CategoryBudget> getCategoryBudgets() {
+    final jsonStr = _prefs.getString('category_budgets');
+    if (jsonStr == null) return [];
+    final jsonList = jsonDecode(jsonStr) as List;
+    return jsonList.map((map) => CategoryBudget.fromMap(map)).toList();
+  }
+
+  Future<void> deleteCategoryBudget(String id) async {
+    final list = getCategoryBudgets();
+    list.removeWhere((b) => b.id == id);
+    final jsonList = list.map((b) => b.toMap()).toList();
+    await _prefs.setString('category_budgets', jsonEncode(jsonList));
+  }
+
+  // 预算周期
+  Future<void> setBudgetPeriod(String period) async {
+    await _prefs.setString('budget_period', period);
+  }
+
+  String getBudgetPeriod() {
+    return _prefs.getString('budget_period') ?? 'monthly';
   }
 }
