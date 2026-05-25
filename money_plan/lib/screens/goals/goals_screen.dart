@@ -290,6 +290,111 @@ class GoalsScreen extends StatelessWidget {
             ],
           ),
 
+          // Goal details
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.05),
+                  AppTheme.primaryLight.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '还需存入',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      '¥${provider.getGoalRemainingAmount(goal).toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                if (provider.getGoalMonthsNeeded(goal) > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '预计还需',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${provider.getGoalMonthsNeeded(goal)} 个月',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (provider.getGoalCompletionDate(goal) != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '预计完成',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${provider.getGoalCompletionDate(goal)!.year}年${provider.getGoalCompletionDate(goal)!.month}月',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Complete button when goal is reached
+          if (goal.progress >= 1.0) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  provider.completeSavingsGoal(goal.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('恭喜！${goal.name}已完成'),
+                      backgroundColor: AppTheme.successColor,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.successColor,
+                ),
+                child: const Text('完成目标'),
+              ),
+            ),
+          ],
+
           if (goal.targetDate != null) ...[
             const SizedBox(height: 14),
             Container(

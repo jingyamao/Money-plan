@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction.dart';
 import '../models/budget.dart';
 import '../models/savings_goal.dart';
+import '../models/fixed_transaction.dart';
 
 class StorageService {
   static final StorageService _instance = StorageService._internal();
@@ -85,5 +86,32 @@ class StorageService {
 
   double getMonthlyIncome() {
     return _prefs.getDouble('monthly_income') ?? 0;
+  }
+
+  // 固定收支
+  Future<void> saveFixedTransaction(FixedTransaction fixed) async {
+    final list = getFixedTransactions();
+    final index = list.indexWhere((f) => f.id == fixed.id);
+    if (index != -1) {
+      list[index] = fixed;
+    } else {
+      list.add(fixed);
+    }
+    final jsonList = list.map((f) => f.toMap()).toList();
+    await _prefs.setString('fixed_transactions', jsonEncode(jsonList));
+  }
+
+  List<FixedTransaction> getFixedTransactions() {
+    final jsonStr = _prefs.getString('fixed_transactions');
+    if (jsonStr == null) return [];
+    final jsonList = jsonDecode(jsonStr) as List;
+    return jsonList.map((map) => FixedTransaction.fromMap(map)).toList();
+  }
+
+  Future<void> deleteFixedTransaction(String id) async {
+    final list = getFixedTransactions();
+    list.removeWhere((f) => f.id == id);
+    final jsonList = list.map((f) => f.toMap()).toList();
+    await _prefs.setString('fixed_transactions', jsonEncode(jsonList));
   }
 }

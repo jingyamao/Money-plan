@@ -4,6 +4,7 @@ import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
+import 'fixed_transactions_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -123,6 +124,24 @@ class SettingsScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _buildSettingsCard(
                           children: [
+                            _buildSettingsTile(
+                              icon: Icons.repeat_rounded,
+                              iconColor: const Color(0xFF7C8CF8),
+                              title: '固定收支',
+                              subtitle: '管理每月固定收入和支出',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const FixedTransactionsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            Divider(
+                                height: 1,
+                                color: Colors.grey.withValues(alpha: 0.15)),
                             _buildSettingsTile(
                               icon: Icons.cloud_upload_rounded,
                               iconColor: const Color(0xFF4ECDC4),

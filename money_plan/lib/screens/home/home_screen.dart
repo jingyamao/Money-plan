@@ -6,7 +6,9 @@ import '../../services/ai_service.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import '../../widgets/cards/transaction_tile.dart';
+import '../transaction/add_transaction_screen.dart';
 import '../transaction/edit_transaction_screen.dart';
+import '../transaction/transaction_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,7 +178,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const TransactionListScreen(),
+                                    ),
+                                  );
+                                },
                                 child: const Text(
                                   '查看全部',
                                   style: TextStyle(
@@ -477,6 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
               '记一笔',
               Icons.add_circle_rounded,
               AppTheme.primaryColor,
+              () => _navigateToAddTransaction(),
             ),
           ),
         ),
@@ -488,6 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
               '预算',
               Icons.pie_chart_rounded,
               const Color(0xFF7C8CF8),
+              () => _showBudgetDialog(),
             ),
           ),
         ),
@@ -499,6 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
               '目标',
               Icons.flag_rounded,
               const Color(0xFFFFBE76),
+              () => _navigateToGoals(),
             ),
           ),
         ),
@@ -506,23 +519,81 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAction(String label, IconData icon, Color color) {
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
+  Widget _buildQuickAction(
+      String label, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToAddTransaction() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AddTransactionScreen(),
+      ),
+    );
+  }
+
+  void _showBudgetDialog() {
+    final provider = context.read<AppProvider>();
+    final controller = TextEditingController(
+      text: provider.monthlyBudget.toStringAsFixed(0),
+    );
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('设置月度预算'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            prefixText: '¥ ',
+            hintText: '请输入月度预算',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final amount = double.tryParse(controller.text);
+              if (amount != null && amount > 0) {
+                provider.setMonthlyBudget(amount);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('保存'),
           ),
         ],
       ),
+    );
+  }
+
+  void _navigateToGoals() {
+    // Use a callback or navigate directly
+    // For now, show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('请切换到目标标签页')),
     );
   }
 

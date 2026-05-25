@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import '../models/budget.dart';
 import '../models/savings_goal.dart';
+import '../models/fixed_transaction.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import '../services/notification_service.dart';
@@ -484,4 +485,128 @@ class AppProvider extends ChangeNotifier {
 
   // 是否超支
   bool get isOverBudget => monthlySpent > _monthlyBudget;
+
+  // ========== 固定收支相关 ==========
+
+  // 获取固定收支列表
+  List<FixedTransaction> get fixedTransactions => _storage.getFixedTransactions();
+
+  // 每月固定支出总额
+  double get monthlyFixedExpenses {
+    return fixedTransactions
+        .where((f) => f.type == FixedType.expense && f.isActive)
+        .fold(0, (sum, f) => sum + f.amount);
+  }
+
+  // 每月固定收入总额
+  double get monthlyFixedIncome {
+    return fixedTransactions
+        .where((f) => f.type == FixedType.income && f.isActive)
+        .fold(0, (sum, f) => sum + f.amount);
+  }
+
+  // 每月可支配收入（收入 - 固定支出）
+  double get disposableIncome => _monthlyIncome - monthlyFixedExpenses;
+
+  // 生活费（可支配收入中用于日常消费的部分）
+  // 默认为月度预算
+  double get livingBudget => _monthlyBudget;
+
+  // 日均可用生活费（基于到下次发薪日的天数）
+  double get dailyLivingBudget {
+    final now = DateTime.now();
+    // 假设每月15号发工资
+    final payday = 15;
+    int daysToPayday;
+
+    if (now.day < payday) {
+      daysToPayday = payday - now.day;
+    } else {
+      // 下个月的发薪日
+      final nextMonth = DateTime(now.year, now.month + 1, payday);
+      daysToPayday = nextMonth.difference(now).inDays;
+    }
+
+    if (daysToPayday <= 0) daysToPayday = 1;
+
+    final remaining = livingBudget - monthlySpent;
+    return remaining > 0 ? remaining / daysToPayday : 0;
+  }
+
+  // 本月实际可存款金额
+  double get monthlySavingAmount => disposableIncome - livingBudget;
+
+  // 生活费是否不足
+  bool get isLivingBudgetInsufficient => monthlySpent >= livingBudget;
+
+  // 完成存款目标
+  Future<void> completeSavingsGoal(String goalId) async {
+    final index = _savingsGoals.indexWhere((g) => g.id == goalId);
+    if (index == -1) return;
+
+    final goal = _savingsGoals[index];
+    final remaining = goal.targetAmount - goal.currentAmount;
+
+    // 从存款中扣除
+    _currentSavings -= remaining;
+    await _storage.setCurrentSavings(_currentSavings);
+
+    // 标记目标完成
+    _savingsGoals[index] = goal.copyWith(
+      currentAmount: goal.targetAmount,
+    );
+    await _storage.saveSavingsGoals(_savingsGoals);
+
+    if (_isLoggedIn) {
+      await _supabase.saveSavingsGoal(_savingsGoals[index]);
+      await _supabase.saveUserSettings(
+        monthlyBudget: _monthlyBudget,
+        currentSavings: _currentSavings,
+        monthlyIncome: _monthlyIncome,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  // 从存款转入生活费
+  Future<void> transferFromSavings(double amount) async {
+    if (amount > _currentSavings) return;
+
+    _currentSavings -= amount;
+    _monthlyBudget += amount;
+    await _storage.setCurrentSavings(_currentSavings);
+    await _storage.setMonthlyBudget(_monthlyBudget);
+
+    if (_isLoggedIn) {
+      await _supabase.saveUserSettings(
+        monthlyBudget: _monthlyBudget,
+        currentSavings: _currentSavings,
+        monthlyIncome: _monthlyIncome,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  // 计算目标还需存款金额
+  double getGoalRemainingAmount(SavingsGoal goal) {
+    return goal.targetAmount - goal.currentAmount;
+  }
+
+  // 计算按当前存款速度，完成目标需要多少个月
+  int getGoalMonthsNeeded(SavingsGoal goal) {
+    final remaining = getGoalRemainingAmount(goal);
+    if (remaining <= 0) return 0;
+    if (monthlySavingAmount <= 0) return -1; // 无法计算
+    return (remaining / monthlySavingAmount).ceil();
+  }
+
+  // 计算目标完成日期
+  DateTime? getGoalCompletionDate(SavingsGoal goal) {
+    final months = getGoalMonthsNeeded(goal);
+    if (months < 0) return null;
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + months, now.day);
+  }
 }
