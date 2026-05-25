@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
 import '../../services/ai_service.dart';
-import '../../widgets/common/animated_widgets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -15,9 +15,10 @@ class AiChatScreen extends StatefulWidget {
   State<AiChatScreen> createState() => _AiChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> {
+class _AiChatScreenState extends State<AiChatScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
   List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
@@ -50,16 +51,16 @@ class _AiChatScreenState extends State<AiChatScreen> {
   void _addWelcomeMessage() {
     setState(() {
       _messages.add(ChatMessage(
-        text: '''👋 **你好！我是小财**
+        text: '''**你好，我是小财**
 
 你的智能理财助手，可以帮你：
 
-📊 **分析消费** - 我这个月花了多少钱？
-💰 **查看预算** - 我的钱都花在哪里了？
-📈 **预测存款** - 按目前速度月底能存多少？
-💡 **理财建议** - 给我一些省钱建议
+- **分析消费** - 查看本月消费情况
+- **预算管理** - 了解预算使用进度
+- **存款规划** - 预测存款目标完成时间
+- **理财建议** - 获取省钱小技巧
 
-直接输入问题，或点击下方快捷按钮开始～''',
+直接输入问题，或点击下方快捷按钮开始''',
         isUser: false,
         timestamp: DateTime.now(),
       ));
@@ -70,6 +71,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -88,246 +90,251 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE0F7FA),
-              Color(0xFFF0F4F8),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // App Bar
-              _buildAppBar(),
-
-              // Chat messages
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    return FadeSlideIn(
-                      delay: Duration(milliseconds: index * 30),
-                      child: _buildMessage(_messages[index]),
-                    );
-                  },
-                ),
+      backgroundColor: const Color(0xFFF7F7F8),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          // Chat messages
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _focusNode.unfocus(),
+              child: ListView.builder(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return _buildMessage(_messages[index], index);
+                },
               ),
-
-              // Loading indicator
-              if (_isLoading) _buildLoadingIndicator(),
-
-              // Quick actions
-              _buildQuickActions(),
-
-              // Input
-              _buildInputArea(),
-            ],
+            ),
           ),
-        ),
+
+          // Loading indicator
+          if (_isLoading) _buildLoadingIndicator(),
+
+          // Quick actions
+          if (_messages.length <= 1) _buildQuickActions(),
+
+          // Input
+          _buildInputArea(),
+        ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0.5,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
+        onPressed: () => Navigator.pop(context),
+        color: AppTheme.textPrimary,
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4F8EFF), Color(0xFF1D63E0)],
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '小财助手',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Text(
+                '在线',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.successColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ],
       ),
+      centerTitle: true,
+      actions: [
+        PopupMenuButton<String>(
+          icon: Icon(Icons.more_horiz_rounded, color: AppTheme.textSecondary),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onSelected: (value) {
+            if (value == 'clear') _clearHistory();
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'clear',
+              child: Row(
+                children: [
+                  Icon(Icons.delete_outline_rounded, size: 20),
+                  SizedBox(width: 8),
+                  Text('清空对话'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMessage(ChatMessage message, int index) {
+    final isUser = message.isUser;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
       child: Row(
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => Navigator.pop(context),
-          ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          if (!isUser) ...[
+            _buildBotAvatar(),
+            const SizedBox(width: 12),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.78,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: AppTheme.primaryGradient,
+                    color: isUser ? const Color(0xFF4F8EFF) : Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(16),
+                      topRight: const Radius.circular(16),
+                      bottomLeft: Radius.circular(isUser ? 16 : 4),
+                      bottomRight: Radius.circular(isUser ? 4 : 16),
                     ),
-                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.auto_awesome_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'AI 理财助手',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      '在线',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.successColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 22),
-            onPressed: _clearHistory,
-            color: AppTheme.textHint,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessage(ChatMessage message) {
-    final isUser = message.isUser;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isUser) _buildAvatar(),
-          if (!isUser) const SizedBox(width: 10),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isUser ? AppTheme.primaryColor : Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isUser
-                        ? AppTheme.primaryColor.withValues(alpha: 0.3)
-                        : Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: isUser
-                  ? Text(
-                      message.text,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        height: 1.5,
-                      ),
-                    )
-                  : MarkdownBody(
-                      data: message.text,
-                      styleSheet: MarkdownStyleSheet(
-                        p: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 14,
-                          height: 1.6,
-                        ),
-                        strong: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                        em: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        listBullet: const TextStyle(
-                          color: AppTheme.textPrimary,
-                        ),
-                        code: TextStyle(
-                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          color: AppTheme.primaryColor,
-                          fontSize: 13,
-                        ),
-                        codeblockDecoration: BoxDecoration(
-                          color: AppTheme.surfaceColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        blockquoteDecoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color: AppTheme.primaryColor,
-                              width: 3,
+                  child: isUser
+                      ? Text(
+                          message.text,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.6,
+                          ),
+                        )
+                      : MarkdownBody(
+                          data: message.text,
+                          selectable: true,
+                          styleSheet: MarkdownStyleSheet(
+                            p: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 15,
+                              height: 1.6,
+                            ),
+                            strong: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                            em: const TextStyle(
+                              color: Color(0xFF4F8EFF),
+                              fontStyle: FontStyle.italic,
+                            ),
+                            listBullet: const TextStyle(
+                              color: AppTheme.textPrimary,
+                            ),
+                            code: TextStyle(
+                              backgroundColor: const Color(0xFFF5F5F5),
+                              color: AppTheme.textPrimary,
+                              fontSize: 13,
+                            ),
+                            codeblockDecoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            h1: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            h2: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            h3: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        blockquotePadding:
-                            const EdgeInsets.only(left: 12, top: 4, bottom: 4),
+                ),
+                // Action buttons for AI messages
+                if (!isUser) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildActionButton(
+                        icon: Icons.copy_rounded,
+                        label: '复制',
+                        onTap: () => _copyMessage(message.text),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      _buildActionButton(
+                        icon: Icons.thumb_up_outlined,
+                        label: '有用',
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 12),
+                      _buildActionButton(
+                        icon: Icons.thumb_down_outlined,
+                        label: '',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
-          if (isUser) const SizedBox(width: 10),
-          if (isUser) _buildUserAvatar(),
+          if (isUser) ...[
+            const SizedBox(width: 12),
+            _buildUserAvatar(),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildBotAvatar() {
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: AppTheme.primaryGradient,
+          colors: [Color(0xFF4F8EFF), Color(0xFF1D63E0)],
         ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: const Icon(
-        Icons.auto_awesome_rounded,
-        color: Colors.white,
-        size: 18,
-      ),
+      child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
     );
   }
 
@@ -336,24 +343,53 @@ class _AiChatScreenState extends State<AiChatScreen> {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: AppTheme.accentColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(
-        Icons.person_rounded,
-        color: AppTheme.accentColor,
-        size: 20,
+      child: Icon(Icons.person_rounded, color: AppTheme.primaryColor, size: 20),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppTheme.textSecondary),
+            if (label.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildLoadingIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          _buildAvatar(),
-          const SizedBox(width: 10),
+          _buildBotAvatar(),
+          const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -361,8 +397,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -375,15 +411,33 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppTheme.primaryColor,
+                    color: const Color(0xFF4F8EFF),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  '思考中...',
+                  '正在思考...',
                   style: TextStyle(
                     color: AppTheme.textSecondary,
                     fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: _stopGeneration,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '停止',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -396,53 +450,54 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Widget _buildQuickActions() {
     final quickQuestions = [
-      '本月消费分析',
-      '省钱建议',
-      '存款预测',
+      {'icon': Icons.pie_chart_rounded, 'text': '本月消费分析', 'color': const Color(0xFFFF6B6B)},
+      {'icon': Icons.lightbulb_rounded, 'text': '给我省钱建议', 'color': const Color(0xFFFFBE76)},
+      {'icon': Icons.savings_rounded, 'text': '存款目标预测', 'color': const Color(0xFF6BCB77)},
+      {'icon': Icons.trending_down_rounded, 'text': '哪些可以减少', 'color': const Color(0xFF4ECDC4)},
     ];
 
     return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: quickQuestions.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: GestureDetector(
-              onTap: () {
-                _messageController.text = quickQuestions[index];
-                _sendMessage();
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: quickQuestions.map((q) {
+          return GestureDetector(
+            onTap: () {
+              _messageController.text = q['text'] as String;
+              _sendMessage();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E5E5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(q['icon'] as IconData, size: 16, color: q['color'] as Color),
+                  const SizedBox(width: 6),
+                  Text(
+                    q['text'] as String,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
-                ),
-                child: Text(
-                  quickQuestions[index],
-                  style: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                ],
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
 
   Widget _buildInputArea() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -454,63 +509,48 @@ class _AiChatScreenState extends State<AiChatScreen> {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: Container(
+              constraints: const BoxConstraints(maxHeight: 120),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.2),
-                ),
+                color: const Color(0xFFF7F7F8),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: '输入你的问题...',
-                        hintStyle: TextStyle(
-                          color: AppTheme.textHint,
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      maxLines: null,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
+              child: TextField(
+                controller: _messageController,
+                focusNode: _focusNode,
+                maxLines: null,
+                textInputAction: TextInputAction.send,
+                style: const TextStyle(fontSize: 15, height: 1.5),
+                decoration: InputDecoration(
+                  hintText: '输入你的问题...',
+                  hintStyle: TextStyle(
+                    color: AppTheme.textHint,
+                    fontSize: 15,
                   ),
-                ],
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onSubmitted: (_) => _sendMessage(),
               ),
             ),
           ),
           const SizedBox(width: 10),
           GestureDetector(
-            onTap: _sendMessage,
+            onTap: _isLoading ? null : _sendMessage,
             child: Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: AppTheme.primaryGradient,
-                ),
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: _isLoading ? const Color(0xFFE5E5E5) : const Color(0xFF4F8EFF),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.send_rounded,
-                color: Colors.white,
-                size: 20,
+              child: Icon(
+                Icons.arrow_upward_rounded,
+                color: _isLoading ? AppTheme.textHint : Colors.white,
+                size: 22,
               ),
             ),
           ),
@@ -521,7 +561,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isLoading) return;
 
     setState(() {
       _messages.add(ChatMessage(
@@ -539,15 +579,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
     if (!mounted) return;
     final provider = context.read<AppProvider>();
 
-    // Build context for AI
     final contextInfo = '''
 用户财务数据：
-- 月度预算：¥${provider.monthlyBudget.toStringAsFixed(2)}
-- 本月已消费：¥${provider.monthlySpent.toStringAsFixed(2)}
-- 今日消费：¥${provider.todaySpent.toStringAsFixed(2)}
-- 当前存款：¥${provider.currentSavings.toStringAsFixed(0)}
-- 月收入：¥${provider.monthlyIncome.toStringAsFixed(0)}
-- 消费分类：${provider.categoryBreakdown.entries.map((e) => '${e.key}: ¥${e.value.toStringAsFixed(2)}').join('，')}
+- 月度预算：${provider.monthlyBudget.toStringAsFixed(0)}元
+- 本月已消费：${provider.monthlySpent.toStringAsFixed(0)}元
+- 今日消费：${provider.todaySpent.toStringAsFixed(0)}元
+- 当前存款：${provider.currentSavings.toStringAsFixed(0)}元
+- 月收入：${provider.monthlyIncome.toStringAsFixed(0)}元
+- 消费分类：${provider.categoryBreakdown.entries.map((e) => '${e.key} ${e.value.toStringAsFixed(0)}元').join('，')}
 ''';
 
     final response = await AiService().chat(text, context: contextInfo);
@@ -566,13 +605,30 @@ class _AiChatScreenState extends State<AiChatScreen> {
     await _saveHistory();
   }
 
+  void _stopGeneration() {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _copyMessage(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('已复制到剪贴板'),
+        backgroundColor: AppTheme.successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   Future<void> _clearHistory() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('清空对话'),
         content: const Text('确定要清空所有对话记录吗？'),
         actions: [
