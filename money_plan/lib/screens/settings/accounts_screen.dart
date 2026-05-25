@@ -31,8 +31,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final totalBalance = _accounts.fold(0.0, (sum, a) => sum + a.balance);
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -45,7 +43,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // App Bar
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
                 child: Row(
@@ -70,21 +67,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      // Total balance card
-                      FadeSlideIn(
-                        child: _buildTotalBalanceCard(totalBalance),
-                      ),
-                      const SizedBox(height: 20),
-                      // Account list
                       if (_accounts.isEmpty)
-                        FadeSlideIn(
-                          delay: const Duration(milliseconds: 200),
-                          child: _buildEmptyState(),
-                        )
+                        FadeSlideIn(child: _buildEmptyState())
                       else
                         ..._accounts.asMap().entries.map((entry) {
                           return FadeSlideIn(
-                            delay: Duration(milliseconds: 200 + (entry.key * 50)),
+                            delay: Duration(milliseconds: entry.key * 50),
                             child: _buildAccountItem(entry.value),
                           );
                         }),
@@ -96,43 +84,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTotalBalanceCard(double total) {
-    return GlassCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const Text('总资产', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
-          const SizedBox(height: 8),
-          Text(
-            '¥${total.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBalanceInfo('账户数', '${_accounts.length}'),
-              Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
-              _buildBalanceInfo('本月收入', '¥0'),
-              Container(width: 1, height: 30, color: Colors.grey.withValues(alpha: 0.2)),
-              _buildBalanceInfo('本月支出', '¥0'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBalanceInfo(String label, String value) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-      ],
     );
   }
 
@@ -163,21 +114,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '¥${account.balance.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              GestureDetector(
-                onTap: () => _deleteAccount(account),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Icon(Icons.delete_outline_rounded, color: AppTheme.textHint, size: 18),
-                ),
-              ),
-            ],
+          GestureDetector(
+            onTap: () => _deleteAccount(account),
+            child: Icon(Icons.delete_outline_rounded, color: AppTheme.textHint, size: 20),
           ),
         ],
       ),
@@ -188,7 +127,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return Center(
       child: Column(
         children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 60),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -200,7 +139,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           const SizedBox(height: 16),
           const Text('暂无账户', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          const Text('添加你的银行卡、支付宝等账户', style: TextStyle(color: AppTheme.textHint)),
+          const Text('添加你的记账账户', style: TextStyle(color: AppTheme.textHint)),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: _showAddDialog,
@@ -214,10 +153,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   IconData _getAccountIcon(String type) {
     switch (type) {
-      case 'bank': return Icons.account_balance_rounded;
       case 'alipay': return Icons.payment_rounded;
       case 'wechat': return Icons.chat_bubble_rounded;
-      case 'credit': return Icons.credit_card_rounded;
       case 'cash': return Icons.money_rounded;
       default: return Icons.account_balance_wallet_rounded;
     }
@@ -225,10 +162,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   Color _getAccountColor(String type) {
     switch (type) {
-      case 'bank': return const Color(0xFF4F8EFF);
       case 'alipay': return const Color(0xFF1677FF);
       case 'wechat': return const Color(0xFF07C160);
-      case 'credit': return const Color(0xFFFF6B6B);
       case 'cash': return const Color(0xFFFFBE76);
       default: return AppTheme.primaryColor;
     }
@@ -236,10 +171,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   String _getAccountTypeName(String type) {
     switch (type) {
-      case 'bank': return '银行卡';
       case 'alipay': return '支付宝';
       case 'wechat': return '微信';
-      case 'credit': return '信用卡';
       case 'cash': return '现金';
       default: return '其他';
     }
@@ -247,15 +180,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   void _showAddDialog() {
     final nameController = TextEditingController();
-    final balanceController = TextEditingController();
-    String selectedType = 'bank';
+    String selectedType = 'alipay';
 
     final types = [
-      {'value': 'bank', 'label': '银行卡', 'icon': Icons.account_balance_rounded},
-      {'value': 'alipay', 'label': '支付宝', 'icon': Icons.payment_rounded},
-      {'value': 'wechat', 'label': '微信', 'icon': Icons.chat_bubble_rounded},
-      {'value': 'credit', 'label': '信用卡', 'icon': Icons.credit_card_rounded},
-      {'value': 'cash', 'label': '现金', 'icon': Icons.money_rounded},
+      {'value': 'alipay', 'label': '支付宝', 'icon': Icons.payment_rounded, 'color': const Color(0xFF1677FF)},
+      {'value': 'wechat', 'label': '微信', 'icon': Icons.chat_bubble_rounded, 'color': const Color(0xFF07C160)},
+      {'value': 'cash', 'label': '现金', 'icon': Icons.money_rounded, 'color': const Color(0xFFFFBE76)},
     ];
 
     showDialog(
@@ -270,7 +200,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Account type
                     const Text('账户类型', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
                     const SizedBox(height: 8),
                     Wrap(
@@ -281,21 +210,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         return GestureDetector(
                           onTap: () => setState(() => selectedType = t['value'] as String),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
+                              color: isSelected ? (t['color'] as Color).withValues(alpha: 0.1) : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                                color: isSelected ? t['color'] as Color : Colors.transparent,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(t['icon'] as IconData, size: 16, color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary),
-                                const SizedBox(width: 6),
+                                Icon(t['icon'] as IconData, size: 18, color: t['color'] as Color),
+                                const SizedBox(width: 8),
                                 Text(t['label'] as String, style: TextStyle(
-                                  color: isSelected ? AppTheme.primaryColor : AppTheme.textPrimary,
+                                  color: isSelected ? t['color'] as Color : AppTheme.textPrimary,
                                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                 )),
                               ],
@@ -305,31 +234,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       }).toList(),
                     ),
                     const SizedBox(height: 16),
-                    // Name
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: '账户名称', hintText: '如：工商银行'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Balance
-                    TextField(
-                      controller: balanceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: '当前余额', prefixText: '¥ '),
+                      decoration: const InputDecoration(
+                        labelText: '账户名称',
+                        hintText: '如：我的支付宝',
+                      ),
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
-                ),
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
                 ElevatedButton(
                   onPressed: () {
                     final name = nameController.text;
-                    final balance = double.tryParse(balanceController.text) ?? 0;
-
                     if (name.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请输入账户名称')));
                       return;
@@ -339,7 +258,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       id: const Uuid().v4(),
                       name: name,
                       type: selectedType,
-                      balance: balance,
                     );
 
                     _storage.saveAccount(account);

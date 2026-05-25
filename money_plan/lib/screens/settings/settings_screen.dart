@@ -7,6 +7,7 @@ import '../../widgets/common/animated_widgets.dart';
 import 'fixed_transactions_screen.dart';
 import 'category_budget_screen.dart';
 import 'accounts_screen.dart';
+import 'import_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -199,8 +200,11 @@ class SettingsScreen extends StatelessWidget {
                               title: '导入账单',
                               subtitle: '从支付宝/微信导入',
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  _buildSnackBar('功能开发中...'),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ImportScreen(),
+                                  ),
                                 );
                               },
                             ),
