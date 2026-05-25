@@ -13,7 +13,7 @@ class AiService {
         {
           'role': 'system',
           'content':
-              '你是 Money Plan 的智能理财助手"小财"。你擅长分析用户的消费习惯，提供理财建议，帮助用户实现存款目标。请用简洁友好的语气回复，适合手机展示。'
+              '你是 Money Plan 的智能理财助手"小财"。你擅长分析用户的消费习惯，提供理财建议，帮助用户实现存款目标。请用简洁友好的语气回复，适合手机展示。回复控制在200字以内。'
         },
       ];
 
@@ -33,17 +33,25 @@ class AiService {
           'model': AppConstants.aiModel,
           'messages': messages,
           'temperature': 0.7,
-          'max_tokens': 500,
+          'max_tokens': 300,
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'];
+        if (data['choices'] != null && data['choices'].isNotEmpty) {
+          return data['choices'][0]['message']['content'];
+        }
+        return '暂时无法获取分析结果。';
       } else {
-        return '抱歉，暂时无法获取 AI 分析，请稍后再试。';
+        print('AI API Error: ${response.statusCode} - ${response.body}');
+        return 'AI 服务暂时不可用，请稍后再试。';
       }
     } catch (e) {
+      print('AI Service Error: $e');
+      if (e.toString().contains('timeout')) {
+        return '请求超时，请检查网络后重试。';
+      }
       return '网络连接出现问题，请检查网络后重试。';
     }
   }

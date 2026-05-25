@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../config/theme.dart';
+import '../../models/transaction.dart';
 import '../../providers/app_provider.dart';
 import '../../services/ai_service.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import '../../widgets/cards/transaction_tile.dart';
-import '../transaction/add_transaction_screen.dart';
 import '../transaction/edit_transaction_screen.dart';
 import '../transaction/transaction_list_screen.dart';
 import '../ai/ai_chat_screen.dart';
@@ -553,11 +554,224 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToAddTransaction() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AddTransactionScreen(),
-      ),
+    _showQuickTransactionDialog();
+  }
+
+  void _showQuickTransactionDialog() {
+    final amountController = TextEditingController();
+    String selectedCategory = '餐饮';
+    bool isExpense = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: AppTheme.primaryGradient,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('快速记账'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Type toggle
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => isExpense = true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isExpense
+                                    ? AppTheme.errorColor
+                                    : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '支出',
+                                  style: TextStyle(
+                                    color: isExpense
+                                        ? Colors.white
+                                        : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => isExpense = false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: !isExpense
+                                    ? AppTheme.successColor
+                                    : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '收入',
+                                  style: TextStyle(
+                                    color: !isExpense
+                                        ? Colors.white
+                                        : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Amount
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      autofocus: true,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: const InputDecoration(
+                        prefixText: '¥ ',
+                        prefixStyle: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                        hintText: '0.00',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Category
+                    const Text(
+                      '分类',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: AppTheme.categoryColors.entries.map((entry) {
+                        final isSelected = selectedCategory == entry.key;
+                        return GestureDetector(
+                          onTap: () =>
+                              setState(() => selectedCategory = entry.key),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? entry.value.withValues(alpha: 0.15)
+                                  : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected
+                                    ? entry.value
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  AppTheme.categoryIcons[entry.key],
+                                  size: 16,
+                                  color: entry.value,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  entry.key,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isSelected
+                                        ? entry.value
+                                        : AppTheme.textPrimary,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final amount = double.tryParse(amountController.text);
+                    if (amount == null || amount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请输入有效金额')),
+                      );
+                      return;
+                    }
+
+                    final transaction = Transaction(
+                      id: const Uuid().v4(),
+                      amount: amount,
+                      type: isExpense
+                          ? TransactionType.expense
+                          : TransactionType.income,
+                      category: selectedCategory,
+                      transactionDate: DateTime.now(),
+                      source: TransactionSource.manual,
+                    );
+
+                    context.read<AppProvider>().addTransaction(transaction);
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            '${isExpense ? "支出" : "收入"} ¥${amount.toStringAsFixed(2)}'),
+                        backgroundColor: AppTheme.successColor,
+                      ),
+                    );
+                  },
+                  child: const Text('保存'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
