@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/constants.dart';
 
+String _stripEmoji(String text) {
+  // 移除emoji字符
+  return text.replaceAll(RegExp(r'[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{200D}]|[\u{20E3}]|[\u{FE0F}]|[\u{E0020}-\u{E007F}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F18E}]|[\u{1F191}-\u{1F19A}]|[\u{1F201}-\u{1F251}]|[\u{1F300}-\u{1F5FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{1FB00}-\u{1FBFF}]|[\u{20000}-\u{2A6DF}]|[\u{2A700}-\u{2B73F}]|[\u{2B740}-\u{2B81F}]|[\u{2B820}-\u{2CEAF}]|[\u{2CEB0}-\u{2EBEF}]|[\u{2F800}-\u{2FA1F}]|[\u{30000}-\u{3134F}]', unicode: true), '');
+}
+
 class AiService {
   static final AiService _instance = AiService._internal();
   factory AiService() => _instance;
@@ -13,7 +18,7 @@ class AiService {
         {
           'role': 'system',
           'content':
-              '你是 Money Plan 的智能理财助手"小财"。你擅长分析用户的消费习惯，提供理财建议，帮助用户实现存款目标。请用简洁友好的语气回复，适合手机展示。回复控制在200字以内。'
+              '你是 Money Plan 的智能理财助手"小财"。你擅长分析用户的消费习惯，提供理财建议，帮助用户实现存款目标。请用简洁友好的语气回复，适合手机展示。回复控制在200字以内。重要：不要使用任何emoji表情符号，只使用纯文本回复。'
         },
       ];
 
@@ -41,7 +46,7 @@ class AiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['choices'] != null && data['choices'].isNotEmpty) {
-          return data['choices'][0]['message']['content'];
+          return _stripEmoji(data['choices'][0]['message']['content']);
         }
         return '暂时无法获取分析结果。';
       } else {
