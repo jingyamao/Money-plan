@@ -51,20 +51,28 @@ class SupabaseService {
   // 保存交易记录
   Future<void> saveTransaction(Transaction transaction) async {
     final userId = currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      print('saveTransaction: userId is null');
+      return;
+    }
 
-    await client.from('transactions').upsert({
-      'id': transaction.id,
-      'user_id': userId,
-      'amount': transaction.amount,
-      'type': transaction.type.name,
-      'category': transaction.category,
-      'description': transaction.description,
-      'merchant': transaction.merchant,
-      'transaction_date': transaction.transactionDate.toIso8601String(),
-      'source': transaction.source.name,
-      'created_at': transaction.createdAt.toIso8601String(),
-    });
+    try {
+      await client.from('transactions').upsert({
+        'id': transaction.id,
+        'user_id': userId,
+        'amount': transaction.amount,
+        'type': transaction.type.name,
+        'category': transaction.category,
+        'description': transaction.description,
+        'merchant': transaction.merchant,
+        'transaction_date': transaction.transactionDate.toIso8601String(),
+        'source': transaction.source.name,
+        'created_at': transaction.createdAt.toIso8601String(),
+      });
+      print('Transaction saved: ${transaction.id}');
+    } catch (e) {
+      print('saveTransaction error: $e');
+    }
   }
 
   // 获取交易记录
@@ -129,15 +137,23 @@ class SupabaseService {
     required double monthlyIncome,
   }) async {
     final userId = currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      print('saveUserSettings: userId is null');
+      return;
+    }
 
-    await client.from('user_settings').upsert({
-      'user_id': userId,
-      'monthly_budget': monthlyBudget,
-      'current_savings': currentSavings,
-      'monthly_income': monthlyIncome,
-      'updated_at': DateTime.now().toIso8601String(),
-    });
+    try {
+      await client.from('user_settings').upsert({
+        'user_id': userId,
+        'monthly_budget': monthlyBudget,
+        'current_savings': currentSavings,
+        'monthly_income': monthlyIncome,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+      print('User settings saved');
+    } catch (e) {
+      print('saveUserSettings error: $e');
+    }
   }
 
   // 获取用户设置

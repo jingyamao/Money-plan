@@ -119,22 +119,35 @@ class AppProvider extends ChangeNotifier {
 
   // 同步到云端
   Future<void> _syncToCloud() async {
-    if (!_isLoggedIn) return;
+    if (!_isLoggedIn) {
+      debugPrint('未登录，跳过云端同步');
+      return;
+    }
 
     try {
-      for (final transaction in _transactions) {
-        await _supabase.saveTransaction(transaction);
-      }
+      debugPrint('开始同步到云端... 交易数量: ${_transactions.length}');
 
-      for (final goal in _savingsGoals) {
-        await _supabase.saveSavingsGoal(goal);
-      }
-
+      // 保存用户设置
       await _supabase.saveUserSettings(
         monthlyBudget: _monthlyBudget,
         currentSavings: _currentSavings,
         monthlyIncome: _monthlyIncome,
       );
+      debugPrint('用户设置已同步');
+
+      // 保存交易记录
+      for (final transaction in _transactions) {
+        await _supabase.saveTransaction(transaction);
+      }
+      debugPrint('交易记录已同步: ${_transactions.length} 条');
+
+      // 保存存款目标
+      for (final goal in _savingsGoals) {
+        await _supabase.saveSavingsGoal(goal);
+      }
+      debugPrint('存款目标已同步: ${_savingsGoals.length} 个');
+
+      debugPrint('云端同步完成');
     } catch (e) {
       debugPrint('同步到云端失败: $e');
     }
