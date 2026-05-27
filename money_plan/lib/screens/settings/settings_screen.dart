@@ -4,6 +4,7 @@ import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
 import '../../services/storage_service.dart';
 import '../../services/test_data_service.dart';
+import '../../services/connection_test.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
 import 'fixed_transactions_screen.dart';
@@ -264,6 +265,14 @@ class SettingsScreen extends StatelessWidget {
                               subtitle: '清空数据并生成半年模拟记录',
                               onTap: () => _showTestDataDialog(context),
                             ),
+                            Divider(height: 1, color: Colors.grey.withValues(alpha: 0.15)),
+                            _buildSettingsTile(
+                              icon: Icons.wifi_tethering_rounded,
+                              iconColor: const Color(0xFF4ECDC4),
+                              title: '测试云端连接',
+                              subtitle: '检查 Supabase 数据库连接',
+                              onTap: () => _testConnection(context),
+                            ),
                           ],
                         ),
                       ),
@@ -505,6 +514,33 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _testConnection(BuildContext context) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('正在测试连接...')),
+    );
+
+    final results = await ConnectionTest.testSupabaseConnection();
+    final message = ConnectionTest.formatResults(results);
+
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('连接测试结果'),
+          content: SingleChildScrollView(
+            child: Text(message, style: const TextStyle(fontSize: 12)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _showTestDataDialog(BuildContext dialogContext) {
