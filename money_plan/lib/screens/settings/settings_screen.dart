@@ -195,12 +195,10 @@ class SettingsScreen extends StatelessWidget {
                               icon: Icons.cloud_upload_rounded,
                               iconColor: const Color(0xFF4ECDC4),
                               title: '同步到云端',
-                              subtitle: provider.isLoggedIn ? '已登录，数据自动同步' : '点击登录开启云同步',
+                              subtitle: provider.isLoggedIn ? '已登录 - 点击查看详情' : '点击登录开启云同步',
                               onTap: () {
                                 if (provider.isLoggedIn) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    _buildSnackBar('数据已同步到云端'),
-                                  );
+                                  _showCloudSyncStatus(context, provider);
                                 } else {
                                   _showLoginDialog(context, provider);
                                 }
@@ -416,6 +414,74 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showCloudSyncStatus(BuildContext context, AppProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.cloud_done_rounded, color: AppTheme.successColor),
+            const SizedBox(width: 10),
+            const Text('云端同步'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: AppTheme.successColor, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('已登录，数据自动同步'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('本地数据统计：', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+            const SizedBox(height: 8),
+            Text('交易记录：${provider.transactions.length} 条'),
+            Text('存款目标：${provider.savingsGoals.length} 个'),
+            Text('月度预算：¥${provider.monthlyBudget.toStringAsFixed(0)}'),
+            Text('当前存款：¥${provider.currentSavings.toStringAsFixed(0)}'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await provider.signOut();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('已退出登录')),
+                    );
+                  }
+                },
+                icon: Icon(Icons.logout_rounded, color: AppTheme.errorColor),
+                label: Text('退出登录', style: TextStyle(color: AppTheme.errorColor)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.errorColor),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
       ),
     );
   }
