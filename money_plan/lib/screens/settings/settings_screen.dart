@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
+import '../../services/storage_service.dart';
 import '../../services/test_data_service.dart';
 import '../../widgets/common/glass_card.dart';
 import '../../widgets/common/animated_widgets.dart';
@@ -710,11 +711,27 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('功能开发中...')),
-                        );
+                        // 清除所有本地数据
+                        final storage = StorageService();
+                        await storage.saveTransactions([]);
+                        await storage.saveSavingsGoals([]);
+                        await storage.setMonthlyBudget(0);
+                        await storage.setCurrentSavings(0);
+                        await storage.setMonthlyIncome(0);
+                        await storage.saveAllFixedTransactions([]);
+
+                        // 刷新 provider
+                        if (context.mounted) {
+                          context.read<AppProvider>().reloadData();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('数据已清除'),
+                              backgroundColor: AppTheme.successColor,
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.errorColor,

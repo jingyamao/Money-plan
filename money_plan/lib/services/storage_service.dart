@@ -117,6 +117,11 @@ class StorageService {
     await _prefs.setString('fixed_transactions', jsonEncode(jsonList));
   }
 
+  Future<void> saveAllFixedTransactions(List<FixedTransaction> fixedList) async {
+    final jsonList = fixedList.map((f) => f.toMap()).toList();
+    await _prefs.setString('fixed_transactions', jsonEncode(jsonList));
+  }
+
   // 分类预算
   Future<void> saveCategoryBudget(CategoryBudget budget) async {
     final list = getCategoryBudgets();
