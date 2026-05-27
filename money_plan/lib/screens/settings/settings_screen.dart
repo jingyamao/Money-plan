@@ -116,11 +116,18 @@ class SettingsScreen extends StatelessWidget {
                             _buildSettingsTile(
                               icon: Icons.trending_up_rounded,
                               iconColor: AppTheme.primaryColor,
-                              title: '月收入',
+                              title: '固定收入',
                               subtitle:
-                                  '¥${provider.monthlyIncome.toStringAsFixed(0)}',
-                              onTap: () =>
-                                  _showIncomeDialog(context, provider),
+                                  '¥${provider.monthlyIncome.toStringAsFixed(0)}/月（自动计算）',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const FixedTransactionsScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -582,20 +589,6 @@ class SettingsScreen extends StatelessWidget {
       prefix: '¥ ',
       onSave: (value) {
         if (value >= 0) provider.setCurrentSavings(value);
-      },
-    );
-  }
-
-  void _showIncomeDialog(BuildContext context, AppProvider provider) {
-    final controller = TextEditingController(
-        text: provider.monthlyIncome.toStringAsFixed(0));
-    _showInputDialog(
-      context,
-      title: '设置月收入',
-      controller: controller,
-      prefix: '¥ ',
-      onSave: (value) {
-        if (value >= 0) provider.setMonthlyIncome(value);
       },
     );
   }

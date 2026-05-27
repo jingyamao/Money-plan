@@ -31,7 +31,10 @@ class AppProvider extends ChangeNotifier {
   List<SavingsGoal> get savingsGoals => _savingsGoals;
   double get monthlyBudget => _monthlyBudget;
   double get currentSavings => _currentSavings;
-  double get monthlyIncome => _monthlyIncome;
+
+  // 月收入自动从固定收入计算
+  double get monthlyIncome => monthlyFixedIncome;
+
   bool get isLoggedIn => _isLoggedIn;
 
   void _checkAuthState() {
