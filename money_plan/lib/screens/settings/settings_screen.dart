@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/app_provider.dart';
@@ -530,12 +531,36 @@ class SettingsScreen extends StatelessWidget {
         builder: (context) => AlertDialog(
           title: const Text('连接测试结果'),
           content: SingleChildScrollView(
-            child: Text(message, style: const TextStyle(fontSize: 12)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(message, style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // 复制到剪贴板
+                      Clipboard.setData(ClipboardData(text: message));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('已复制到剪贴板')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_rounded, size: 16),
+                    label: const Text('复制结果'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+              child: const Text('关闭'),
             ),
           ],
         ),
